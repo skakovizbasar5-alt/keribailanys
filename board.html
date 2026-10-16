@@ -25,15 +25,20 @@
   .title h1{margin:0;font-weight:900;font-size:clamp(20px,2.4vw,34px);line-height:1.1}
   .title p.kick{margin:0 0 2px;color:var(--muted);font-weight:700;font-size:clamp(13px,1.2vw,17px)}
   .room{background:var(--ink);color:#fff;border-radius:99px;padding:1px 12px}
-  .tools{display:flex;gap:8px;flex-wrap:wrap}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:380px}
+  .tools button.danger{background:#D9443B;color:#fff;box-shadow:0 3px 0 #A8302A}
+  .tools .who{flex-basis:100%;text-align:right;color:var(--muted);font-weight:700;font-size:12px}
+  .teacher-only{display:none!important}
+  body.teacher .teacher-only{display:inline-block!important}
+  body.teacher .guest-only{display:none!important}
   .tools button{
     border:0;border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-weight:800;
     padding:9px 14px;box-shadow:0 3px 0 var(--line);cursor:pointer;font-size:14px
   }
   .qr{background:#fff;padding:8px;border-radius:14px;box-shadow:0 4px 0 var(--line);cursor:zoom-in;text-align:center}
-  .qr #qrSmall{width:118px;height:118px}
-  .qr #qrSmall img,.qr #qrSmall canvas{width:118px!important;height:118px!important}
-  .qr small{display:block;font-weight:800;font-size:12px;margin-top:4px}
+  .qr #qrSmall{width:clamp(150px,22vh,200px);height:clamp(150px,22vh,200px)}
+  .qr #qrSmall img,.qr #qrSmall canvas{width:100%!important;height:100%!important}
+  .qr small{display:block;font-weight:900;font-size:15px;margin-top:4px}
   main{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:8px 20px 20px;min-height:0}
   .col{display:flex;flex-direction:column;min-height:0;background:rgba(255,255,255,.55);border-radius:24px;border:3px solid var(--c)}
   .col-head{position:relative;display:flex;justify-content:center;padding:8px 8px 0}
@@ -52,9 +57,12 @@
   .card .n{color:var(--muted);font-weight:800;font-size:13px;margin-top:6px}
   .card .x{
     position:absolute;top:4px;right:6px;border:0;background:none;color:#B8B2A6;font-size:18px;
-    cursor:pointer;opacity:0;transition:opacity .2s
+    cursor:pointer;display:none
   }
-  .card:hover .x{opacity:1}
+  body.teacher .card .x{display:block}
+  .card .x:hover{color:#D9443B}
+  .card.out{animation:out .25s forwards}
+  @keyframes out{to{opacity:0;transform:scale(.9)}}
   .empty{color:var(--muted);text-align:center;font-weight:700;padding:24px 8px}
   @keyframes pop{from{opacity:0;transform:scale(.85) translateY(-8px)}to{opacity:1;transform:none}}
   .overlay{position:fixed;inset:0;background:rgba(27,37,89,.82);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9;cursor:zoom-out}
@@ -80,6 +88,10 @@
   <div class="tools">
     <button id="newRoom">🆕 Жаңа сабақ</button>
     <button id="full">⛶ Толық экран</button>
+    <button id="login" class="guest-only">👩‍🏫 Мұғалім кіру</button>
+    <button id="clear" class="teacher-only danger">🗑 Тазалау</button>
+    <button id="logout" class="teacher-only">Шығу</button>
+    <span class="who teacher-only" id="who"></span>
   </div>
   <div class="qr" id="qrBtn" title="Үлкейту"><div id="qrSmall"></div><small>Сканерле!</small></div>
 </header>
@@ -136,32 +148,35 @@
     else document.documentElement.requestFullscreen?.();
   };
 
-  // Мұғалім жасырған жауаптар (тек осы құрылғыда)
-  const hideKey = "kb-hidden-" + room;
-  let hidden = new Set();
-  try { hidden = new Set(JSON.parse(localStorage.getItem(hideKey) || "[]")); } catch (e) {}
-  const saveHidden = () => { try { localStorage.setItem(hideKey, JSON.stringify([...hidden])); } catch (e) {} };
-
   const counts = { bilemin: 0, bilgim: 0, bildim: 0 };
   const setCount = c => $("c-" + c).textContent = counts[c];
+  const cards = new Map();          // кілт -> {card, col}
+  const say = msg => { $("notice").textContent = msg; $("notice").style.display = "block"; };
+  const emptyHtml = '<div class="empty">Жауаптар осында шығады…</div>';
 
   const cfg = window.FIREBASE_CONFIG || {};
+  const TEACHER = (window.TEACHER_EMAIL || "").toLowerCase();
+  let app, fb, fa;
   if (!cfg.databaseURL) {
-    $("notice").style.display = "block";
+    say("Firebase әлі бапталмаған: config.js файлын толтырыңыз.");
   } else {
-    let app, fb;
     try {
       app = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
       fb = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+      fa = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
     } catch (e) {
-      $("notice").textContent = "Firebase-ке қосылу мүмкін болмады. Интернетті тексеріп, бетті жаңартыңыз.";
-      $("notice").style.display = "block";
+      say("Firebase-ке қосылу мүмкін болмады. Интернетті тексеріп, бетті жаңартыңыз.");
     }
-    if (fb) {
-    const db = fb.getDatabase(app.initializeApp(cfg));
-    fb.onChildAdded(fb.query(fb.ref(db, `rooms/${room}/answers`), fb.orderByChild("ts")), snap => {
+  }
+
+  if (fb) {
+    const fapp = app.initializeApp(cfg);
+    const db = fb.getDatabase(fapp);
+    const answersRef = fb.ref(db, `rooms/${room}/answers`);
+
+    fb.onChildAdded(fb.query(answersRef, fb.orderByChild("ts")), snap => {
       const a = snap.val();
-      if (!a || !counts.hasOwnProperty(a.col) || hidden.has(snap.key)) return;
+      if (!a || !counts.hasOwnProperty(a.col)) return;
       const list = $("l-" + a.col);
       list.querySelector(".empty")?.remove();
 
@@ -170,15 +185,55 @@
       const t = document.createElement("div"); t.className = "t"; t.textContent = a.text;
       card.append(t);
       if (a.name) { const n = document.createElement("div"); n.className = "n"; n.textContent = "— " + a.name; card.append(n); }
-      const x = document.createElement("button"); x.className = "x"; x.title = "Жасыру"; x.textContent = "✕";
-      x.onclick = () => {
-        hidden.add(snap.key); saveHidden(); card.remove();
-        counts[a.col]--; setCount(a.col);
+      const x = document.createElement("button"); x.className = "x"; x.title = "Өшіру"; x.textContent = "✕";
+      x.onclick = async () => {
+        try { await fb.remove(fb.child(answersRef, snap.key)); }
+        catch (e) { alert("Өшіру мүмкін болмады. Мұғалім аккаунтымен кіргеніңізді тексеріңіз."); }
       };
       card.append(x);
       list.prepend(card);   // ең жаңасы жоғарыда
+      cards.set(snap.key, { card, col: a.col });
       counts[a.col]++; setCount(a.col);
     });
+
+    // Өшірілген жауап барлық экраннан жоғалады
+    fb.onChildRemoved(answersRef, snap => {
+      const it = cards.get(snap.key);
+      if (!it) return;
+      cards.delete(snap.key);
+      counts[it.col]--; setCount(it.col);
+      it.card.classList.add("out");
+      setTimeout(() => {
+        const list = it.card.parentElement;
+        it.card.remove();
+        if (list && !list.querySelector(".card")) list.innerHTML = emptyHtml;
+      }, 250);
+    });
+
+    // Мұғалімнің кіруі (Google)
+    if (fa) {
+      const auth = fa.getAuth(fapp);
+      fa.onAuthStateChanged(auth, u => {
+        const ok = !!u && (!TEACHER || (u.email || "").toLowerCase() === TEACHER);
+        document.body.classList.toggle("teacher", ok);
+        $("who").textContent = ok ? u.email : "";
+        if (u && !ok) { alert("Бұл аккаунтқа өшіруге рұқсат жоқ."); fa.signOut(auth); }
+      });
+      $("login").onclick = async () => {
+        try { await fa.signInWithPopup(auth, new fa.GoogleAuthProvider()); }
+        catch (e) {
+          if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request")
+            alert("Кіру мүмкін болмады: " + (e.code || e.message));
+        }
+      };
+      $("logout").onclick = () => fa.signOut(auth);
+      $("clear").onclick = async () => {
+        const total = cards.size;
+        if (!total) return alert("Тақта бос.");
+        if (!confirm(`Осы сабақтың барлық ${total} жауабы өшіріледі. Жалғастырасыз ба?`)) return;
+        try { await fb.remove(answersRef); }
+        catch (e) { alert("Өшіру мүмкін болмады. Firebase ережелерін тексеріңіз."); }
+      };
     }
   }
 </script>

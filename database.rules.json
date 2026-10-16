@@ -3,6 +3,7 @@
     "rooms": {
       "$room": {
         ".read": true,
+        ".write": "auth != null && auth.token.email == 'skakovizbasar5@gmail.com' && auth.token.email_verified == true",
         "answers": {
           "$id": {
             ".write": "!data.exists()",
