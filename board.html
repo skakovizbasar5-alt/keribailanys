@@ -113,7 +113,7 @@
   const params = new URLSearchParams(location.search);
   const clean = s => (s || "").trim().replace(/[.#$\[\]\/?&=]/g, "-").slice(0, 100);
   const room = clean(params.get("room")) || "Абылай ханның ішкі және сыртқы саясаты";
-  $("roomName").textContent = room;
+  $("roomName").textContent = "Сабақ: " + room;
   document.title = room + " · Кері байланыс";
 
   // Оқушы бетінің сілтемесі және QR

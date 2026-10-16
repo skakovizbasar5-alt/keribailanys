@@ -109,7 +109,7 @@
   const COLS = ["bilemin", "bilgim", "bildim"];
   const params = new URLSearchParams(location.search);
   const room = (params.get("room") || "Абылай ханның ішкі және сыртқы саясаты").replace(/[.#$\[\]\/]/g, "-").slice(0, 100);
-  $("topic").textContent = room;
+  $("topic").textContent = "Сабақ: " + room;
   document.title = room + " · Кері байланыс";
 
   const cfg = window.FIREBASE_CONFIG || {};
