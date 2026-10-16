@@ -23,7 +23,7 @@
   header{display:flex;align-items:center;gap:16px;padding:12px 20px 4px}
   .title{flex:1;min-width:0}
   .title h1{margin:0;font-weight:900;font-size:clamp(20px,2.4vw,34px);line-height:1.1}
-  .title p{margin:2px 0 0;color:var(--muted);font-weight:700;font-size:clamp(13px,1.2vw,17px)}
+  .title p.kick{margin:0 0 2px;color:var(--muted);font-weight:700;font-size:clamp(13px,1.2vw,17px)}
   .room{background:var(--ink);color:#fff;border-radius:99px;padding:1px 12px}
   .tools{display:flex;gap:8px;flex-wrap:wrap}
   .tools button{
@@ -74,8 +74,8 @@
 <body>
 <header>
   <div class="title">
-    <h1>Кері байланыс</h1>
-    <p>Сабақ: <span class="room" id="roomName">—</span> · QR-ды сканерлеп, жауабыңды жаз</p>
+    <p class="kick">Кері байланыс · QR-ды сканерлеп, үш сұраққа жауап бер</p>
+    <h1 id="roomName">—</h1>
   </div>
   <div class="tools">
     <button id="newRoom">🆕 Жаңа сабақ</button>
@@ -107,9 +107,10 @@
 
   const $ = id => document.getElementById(id);
   const params = new URLSearchParams(location.search);
-  const clean = s => (s || "").trim().replace(/[.#$\[\]\/?&=]/g, "-").slice(0, 60);
+  const clean = s => (s || "").trim().replace(/[.#$\[\]\/?&=]/g, "-").slice(0, 100);
   const room = clean(params.get("room")) || "sabak";
   $("roomName").textContent = room;
+  document.title = room + " · Кері байланыс";
 
   // Оқушы бетінің сілтемесі және QR
   const studentUrl = new URL("index.html?room=" + encodeURIComponent(room), location.href).href;
@@ -127,9 +128,7 @@
   $("overlay").onclick = () => $("overlay").classList.remove("show");
 
   $("newRoom").onclick = () => {
-    const d = new Date();
-    const def = `${d.getDate()}-${d.getMonth() + 1}`;
-    const name = clean(prompt("Жаңа сабақтың атауы (мысалы: 7А-тарих):", def));
+    const name = clean(prompt("Жаңа сабақтың тақырыбы:", ""));
     if (name) location.search = "?room=" + encodeURIComponent(name);
   };
   $("full").onclick = () => {
