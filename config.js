@@ -1,14 +1,10 @@
-// ============================================================
-//  FIREBASE БАПТАУЛАРЫ
-//  Firebase консолінен көшірген firebaseConfig мәндерін
-//  төмендегі тырнақшалардың ішіне қойыңыз (README.md, 2-қадам).
-// ============================================================
+// Firebase баптаулары (бұл кілттер құпия емес; базаны ережелер қорғайды)
 window.FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCdPP57GL1DFAsRZyNve_sfVjnGhTpM3KE",
+  authDomain: "keribailanys-e5bd5.firebaseapp.com",
+  databaseURL: "https://keribailanys-e5bd5-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "keribailanys-e5bd5",
+  storageBucket: "keribailanys-e5bd5.firebasestorage.app",
+  messagingSenderId: "127504850529",
+  appId: "1:127504850529:web:ba2eeceab3af0cda1c5420"
 };
