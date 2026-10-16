@@ -1,0 +1,20 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": true,
+        "answers": {
+          "$id": {
+            ".write": "!data.exists()",
+            ".validate": "newData.hasChildren(['col','text','ts']) && newData.child('ts').val() == now",
+            "col":  { ".validate": "newData.isString() && newData.val().matches(/^(bilemin|bilgim|bildim)$/)" },
+            "text": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 300" },
+            "name": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "ts":   { ".validate": true },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    }
+  }
+}

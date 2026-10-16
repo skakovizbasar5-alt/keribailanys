@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Кері байланыс тақтасы</title>
+<link rel="icon" href="img/bildim.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --bg:#FFF6E6; --ink:#1B2559; --muted:#6B7393; --line:#F0DFC2;
+    --blue:#1E7BE0; --orange:#FF9A1F; --green:#18A673;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Nunito",system-ui,sans-serif;color:var(--ink);
+    background:var(--bg) radial-gradient(circle at 1px 1px,#F3DDB5 1.5px,transparent 0) 0 0/24px 24px;
+    display:flex;flex-direction:column;height:100vh;overflow:hidden;
+  }
+  header{display:flex;align-items:center;gap:16px;padding:12px 20px 4px}
+  .title{flex:1;min-width:0}
+  .title h1{margin:0;font-weight:900;font-size:clamp(20px,2.4vw,34px);line-height:1.1}
+  .title p{margin:2px 0 0;color:var(--muted);font-weight:700;font-size:clamp(13px,1.2vw,17px)}
+  .room{background:var(--ink);color:#fff;border-radius:99px;padding:1px 12px}
+  .tools{display:flex;gap:8px;flex-wrap:wrap}
+  .tools button{
+    border:0;border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-weight:800;
+    padding:9px 14px;box-shadow:0 3px 0 var(--line);cursor:pointer;font-size:14px
+  }
+  .qr{background:#fff;padding:8px;border-radius:14px;box-shadow:0 4px 0 var(--line);cursor:zoom-in;text-align:center}
+  .qr #qrSmall{width:118px;height:118px}
+  .qr #qrSmall img,.qr #qrSmall canvas{width:118px!important;height:118px!important}
+  .qr small{display:block;font-weight:800;font-size:12px;margin-top:4px}
+  main{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:8px 20px 20px;min-height:0}
+  .col{display:flex;flex-direction:column;min-height:0;background:rgba(255,255,255,.55);border-radius:24px;border:3px solid var(--c)}
+  .col-head{position:relative;display:flex;justify-content:center;padding:8px 8px 0}
+  .col-head img{height:clamp(110px,19vh,210px);max-width:100%;object-fit:contain}
+  .badge{
+    position:absolute;top:10px;right:12px;background:var(--c);color:#fff;font-weight:900;
+    border-radius:99px;min-width:38px;padding:4px 10px;text-align:center;font-size:18px
+  }
+  .list{flex:1;overflow-y:auto;padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px}
+  .card{
+    position:relative;background:#fff;border-radius:16px;padding:12px 14px 10px;
+    border-left:7px solid var(--c);box-shadow:0 3px 10px rgba(27,37,89,.08);
+    animation:pop .45s cubic-bezier(.2,1.4,.4,1);
+  }
+  .card .t{font-weight:700;font-size:clamp(15px,1.35vw,21px);line-height:1.3;white-space:pre-wrap;word-wrap:break-word}
+  .card .n{color:var(--muted);font-weight:800;font-size:13px;margin-top:6px}
+  .card .x{
+    position:absolute;top:4px;right:6px;border:0;background:none;color:#B8B2A6;font-size:18px;
+    cursor:pointer;opacity:0;transition:opacity .2s
+  }
+  .card:hover .x{opacity:1}
+  .empty{color:var(--muted);text-align:center;font-weight:700;padding:24px 8px}
+  @keyframes pop{from{opacity:0;transform:scale(.85) translateY(-8px)}to{opacity:1;transform:none}}
+  .overlay{position:fixed;inset:0;background:rgba(27,37,89,.82);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9;cursor:zoom-out}
+  .overlay.show{display:flex}
+  .overlay .box{background:#fff;padding:22px;border-radius:24px}
+  .overlay #qrBig img,.overlay #qrBig canvas{width:min(70vh,80vw)!important;height:min(70vh,80vw)!important}
+  .overlay p{color:#fff;font-weight:900;font-size:clamp(20px,3vw,36px);margin:16px 0 0;text-align:center}
+  .notice{margin:8px 20px 0;background:#fff;border:3px dashed var(--orange);border-radius:16px;padding:12px 16px;font-weight:700;display:none}
+  @media (max-width:800px){
+    body{height:auto;overflow:auto}
+    header{flex-wrap:wrap}
+    main{grid-template-columns:1fr}
+    .list{max-height:none}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1>Кері байланыс</h1>
+    <p>Сабақ: <span class="room" id="roomName">—</span> · QR-ды сканерлеп, жауабыңды жаз</p>
+  </div>
+  <div class="tools">
+    <button id="newRoom">🆕 Жаңа сабақ</button>
+    <button id="full">⛶ Толық экран</button>
+  </div>
+  <div class="qr" id="qrBtn" title="Үлкейту"><div id="qrSmall"></div><small>Сканерле!</small></div>
+</header>
+<div class="notice" id="notice">Firebase әлі бапталмаған: config.js файлын толтырыңыз (README.md, 2-қадам).</div>
+
+<main>
+  <section class="col" style="--c:var(--blue)">
+    <div class="col-head"><img src="img/bilemin.png" alt="Не білесің?"><span class="badge" id="c-bilemin">0</span></div>
+    <div class="list" id="l-bilemin"><div class="empty">Жауаптар осында шығады…</div></div>
+  </section>
+  <section class="col" style="--c:var(--orange)">
+    <div class="col-head"><img src="img/bilgim.png" alt="Не білгің келеді?"><span class="badge" id="c-bilgim">0</span></div>
+    <div class="list" id="l-bilgim"><div class="empty">Жауаптар осында шығады…</div></div>
+  </section>
+  <section class="col" style="--c:var(--green)">
+    <div class="col-head"><img src="img/bildim.png" alt="Не білдің?"><span class="badge" id="c-bildim">0</span></div>
+    <div class="list" id="l-bildim"><div class="empty">Жауаптар осында шығады…</div></div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay"><div class="box"><div id="qrBig"></div></div><p>Телефон камерасымен сканерле 📱</p><p id="link" style="font-size:16px;opacity:.8;font-weight:700;margin-top:6px;word-break:break-all"></p></div>
+
+<script src="config.js"></script>
+<script type="module">
+
+  const $ = id => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const clean = s => (s || "").trim().replace(/[.#$\[\]\/?&=]/g, "-").slice(0, 60);
+  const room = clean(params.get("room")) || "sabak";
+  $("roomName").textContent = room;
+
+  // Оқушы бетінің сілтемесі және QR
+  const studentUrl = new URL("index.html?room=" + encodeURIComponent(room), location.href).href;
+  if (window.QRCode) {
+    new QRCode($("qrSmall"), { text: studentUrl, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M });
+    new QRCode($("qrBig"), { text: studentUrl, width: 700, height: 700, correctLevel: QRCode.CorrectLevel.M });
+  } else {
+    // қосалқы жол: QR кітапханасы жүктелмесе, сурет ретінде аламыз
+    const src = s => `https://api.qrserver.com/v1/create-qr-code/?size=${s}x${s}&margin=0&data=` + encodeURIComponent(studentUrl);
+    $("qrSmall").innerHTML = `<img alt="QR" src="${src(240)}">`;
+    $("qrBig").innerHTML = `<img alt="QR" src="${src(700)}">`;
+  }
+  $("link").textContent = studentUrl.replace(/^https?:\/\//, "");
+  $("qrBtn").onclick = () => $("overlay").classList.add("show");
+  $("overlay").onclick = () => $("overlay").classList.remove("show");
+
+  $("newRoom").onclick = () => {
+    const d = new Date();
+    const def = `${d.getDate()}-${d.getMonth() + 1}`;
+    const name = clean(prompt("Жаңа сабақтың атауы (мысалы: 7А-тарих):", def));
+    if (name) location.search = "?room=" + encodeURIComponent(name);
+  };
+  $("full").onclick = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen?.();
+  };
+
+  // Мұғалім жасырған жауаптар (тек осы құрылғыда)
+  const hideKey = "kb-hidden-" + room;
+  let hidden = new Set();
+  try { hidden = new Set(JSON.parse(localStorage.getItem(hideKey) || "[]")); } catch (e) {}
+  const saveHidden = () => { try { localStorage.setItem(hideKey, JSON.stringify([...hidden])); } catch (e) {} };
+
+  const counts = { bilemin: 0, bilgim: 0, bildim: 0 };
+  const setCount = c => $("c-" + c).textContent = counts[c];
+
+  const cfg = window.FIREBASE_CONFIG || {};
+  if (!cfg.databaseURL) {
+    $("notice").style.display = "block";
+  } else {
+    let app, fb;
+    try {
+      app = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+      fb = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+    } catch (e) {
+      $("notice").textContent = "Firebase-ке қосылу мүмкін болмады. Интернетті тексеріп, бетті жаңартыңыз.";
+      $("notice").style.display = "block";
+    }
+    if (fb) {
+    const db = fb.getDatabase(app.initializeApp(cfg));
+    fb.onChildAdded(fb.query(fb.ref(db, `rooms/${room}/answers`), fb.orderByChild("ts")), snap => {
+      const a = snap.val();
+      if (!a || !counts.hasOwnProperty(a.col) || hidden.has(snap.key)) return;
+      const list = $("l-" + a.col);
+      list.querySelector(".empty")?.remove();
+
+      const card = document.createElement("div");
+      card.className = "card";
+      const t = document.createElement("div"); t.className = "t"; t.textContent = a.text;
+      card.append(t);
+      if (a.name) { const n = document.createElement("div"); n.className = "n"; n.textContent = "— " + a.name; card.append(n); }
+      const x = document.createElement("button"); x.className = "x"; x.title = "Жасыру"; x.textContent = "✕";
+      x.onclick = () => {
+        hidden.add(snap.key); saveHidden(); card.remove();
+        counts[a.col]--; setCount(a.col);
+      };
+      card.append(x);
+      list.prepend(card);   // ең жаңасы жоғарыда
+      counts[a.col]++; setCount(a.col);
+    });
+    }
+  }
+</script>
+</body>
+</html>
