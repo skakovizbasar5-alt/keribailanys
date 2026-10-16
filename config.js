@@ -9,5 +9,3 @@ window.FIREBASE_CONFIG = {
   appId: "1:127504850529:web:ba2eeceab3af0cda1c5420"
 };
 
-// Тақтадағы жауаптарды өшіре алатын мұғалімнің Google аккаунты
-window.TEACHER_EMAIL = "skakovizbasar5@gmail.com";

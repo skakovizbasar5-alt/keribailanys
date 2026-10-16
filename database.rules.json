@@ -3,16 +3,26 @@
     "rooms": {
       "$room": {
         ".read": true,
-        ".write": "auth != null && auth.token.email == 'skakovizbasar5@gmail.com' && auth.token.email_verified == true",
         "answers": {
+          ".write": "!newData.exists()",
           "$id": {
-            ".write": "!data.exists()",
+            ".write": "!data.exists() || !newData.exists()",
             ".validate": "newData.hasChildren(['col','text','ts']) && newData.child('ts').val() == now",
-            "col":  { ".validate": "newData.isString() && newData.val().matches(/^(bilemin|bilgim|bildim)$/)" },
-            "text": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 300" },
-            "name": { ".validate": "newData.isString() && newData.val().length <= 40" },
-            "ts":   { ".validate": true },
-            "$other": { ".validate": false }
+            "col": {
+              ".validate": "newData.isString() && newData.val().matches(/^(bilemin|bilgim|bildim)$/)"
+            },
+            "text": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 300"
+            },
+            "name": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "ts": {
+              ".validate": true
+            },
+            "$other": {
+              ".validate": false
+            }
           }
         }
       }
