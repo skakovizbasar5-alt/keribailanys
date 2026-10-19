@@ -112,9 +112,10 @@
   const $ = id => document.getElementById(id);
   const params = new URLSearchParams(location.search);
   const clean = s => (s || "").trim().replace(/[.#$\[\]\/?&=]/g, "-").slice(0, 100);
-  const room = clean(params.get("room")) || "Абылай ханның ішкі және сыртқы саясаты";
-  $("roomName").textContent = "Сабақ: " + room;
-  document.title = room + " · Кері байланыс";
+  const DEFAULT = "Қазақ тілі сабағында ЖИ құралдарын тиімді пайдалану жолдары";
+  const room = clean(params.get("room")) || DEFAULT;
+  $("roomName").textContent = room === DEFAULT ? "«" + room + "» коучинг-семинары" : room;
+  document.title = $("roomName").textContent + " · Кері байланыс";
 
   // Оқушы бетінің сілтемесі және QR
   const studentUrl = new URL("index.html?room=" + encodeURIComponent(room), location.href).href;

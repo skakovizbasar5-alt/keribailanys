@@ -108,9 +108,10 @@
   const $ = id => document.getElementById(id);
   const COLS = ["bilemin", "bilgim", "bildim"];
   const params = new URLSearchParams(location.search);
-  const room = (params.get("room") || "Абылай ханның ішкі және сыртқы саясаты").replace(/[.#$\[\]\/]/g, "-").slice(0, 100);
-  $("topic").textContent = "Сабақ: " + room;
-  document.title = room + " · Кері байланыс";
+  const DEFAULT = "Қазақ тілі сабағында ЖИ құралдарын тиімді пайдалану жолдары";
+  const room = (params.get("room") || DEFAULT).replace(/[.#$\[\]\/]/g, "-").slice(0, 100);
+  $("topic").textContent = room === DEFAULT ? "«" + room + "» коучинг-семинары" : room;
+  document.title = $("topic").textContent + " · Кері байланыс";
 
   const cfg = window.FIREBASE_CONFIG || {};
   let db = null, fb = {};
