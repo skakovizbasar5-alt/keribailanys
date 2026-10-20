@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg:#FFF6E6; --ink:#1B2559; --muted:#6B7393; --line:#F0DFC2;
@@ -26,6 +27,7 @@
   .title p.kick{margin:0 0 2px;color:var(--muted);font-weight:700;font-size:clamp(13px,1.2vw,17px)}
   .room{background:var(--ink);color:#fff;border-radius:99px;padding:1px 12px}
   .tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:380px}
+  .tools button.excel{background:#1D7A46;color:#fff;box-shadow:0 3px 0 #145A33}
   .tools button.danger{background:#D9443B;color:#fff;box-shadow:0 3px 0 #A8302A}
   .tools button{
     border:0;border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-weight:800;
@@ -83,6 +85,7 @@
   <div class="tools">
     <button id="newRoom">🆕 Жаңа сабақ</button>
     <button id="full">⛶ Толық экран</button>
+    <button id="excel" class="excel">📥 Excel</button>
     <button id="clear" class="danger">🗑 Тазалау</button>
   </div>
   <div class="qr" id="qrBtn" title="Үлкейту"><div id="qrSmall"></div><small>Сканерле!</small></div>
@@ -147,6 +150,44 @@
   const say = msg => { $("notice").textContent = msg; $("notice").style.display = "block"; };
   const emptyHtml = '<div class="empty">Жауаптар осында шығады…</div>';
 
+  // Excel-ге жүктеу
+  $("excel").onclick = () => {
+    if (!window.XLSX) return alert("Excel кітапханасы жүктелмеді. Интернетті тексеріп, бетті жаңартыңыз.");
+    const all = [...cards.values()].map(c => c.data).sort((x, y) => (x.ts || 0) - (y.ts || 0));
+    if (!all.length) return alert("Әзірге жауап жоқ.");
+    const fmt = ts => ts ? new Date(ts).toLocaleString("ru-RU") : "";
+
+    // 1-парақ: бір қатысушы — бір жол (бірге жіберілген үш жауап)
+    const groups = new Map();
+    for (const a of all) {
+      const k = (a.name || "") + "|" + (a.ts || "");
+      if (!groups.has(k)) groups.set(k, { name: a.name || "", ts: a.ts, bilemin: "", bilgim: "", bildim: "" });
+      const g = groups.get(k);
+      g[a.col] = g[a.col] ? g[a.col] + "\n" + a.text : a.text;
+    }
+    const rows1 = [["№", "Аты-жөні", "Не білесің?", "Не білгің келеді?", "Не білдің?", "Уақыты"]];
+    let i = 0;
+    for (const g of groups.values()) rows1.push([++i, g.name, g.bilemin, g.bilgim, g.bildim, fmt(g.ts)]);
+
+    // 2-парақ: бағандар бойынша
+    const label = { bilemin: "Не білесің?", bilgim: "Не білгің келеді?", bildim: "Не білдің?" };
+    const rows2 = [["Сұрақ", "Жауап", "Аты-жөні", "Уақыты"]];
+    for (const c of ["bilemin", "bilgim", "bildim"])
+      for (const a of all.filter(a => a.col === c)) rows2.push([label[c], a.text, a.name || "", fmt(a.ts)]);
+
+    const wb = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.aoa_to_sheet([[$("roomName").textContent], [], ...rows1]);
+    ws1["!cols"] = [{ wch: 5 }, { wch: 24 }, { wch: 45 }, { wch: 45 }, { wch: 45 }, { wch: 18 }];
+    ws1["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
+    const ws2 = XLSX.utils.aoa_to_sheet(rows2);
+    ws2["!cols"] = [{ wch: 20 }, { wch: 60 }, { wch: 24 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(wb, ws1, "Қатысушылар");
+    XLSX.utils.book_append_sheet(wb, ws2, "Сұрақтар бойынша");
+    const d = new Date(), p = n => String(n).padStart(2, "0");
+    const safe = room.replace(/[\\/:*?"<>|«»]/g, "").slice(0, 60).trim();
+    XLSX.writeFile(wb, `Кері байланыс - ${safe} - ${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}.xlsx`);
+  };
+
   const cfg = window.FIREBASE_CONFIG || {};
   let app, fb;
   if (!cfg.databaseURL) {
@@ -183,7 +224,7 @@
       };
       card.append(x);
       list.prepend(card);   // ең жаңасы жоғарыда
-      cards.set(snap.key, { card, col: a.col });
+      cards.set(snap.key, { card, col: a.col, data: a });
       counts[a.col]++; setCount(a.col);
     });
 
