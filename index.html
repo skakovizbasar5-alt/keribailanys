@@ -26,7 +26,7 @@
     background:var(--card);border-radius:22px;padding:10px 14px 14px;margin-bottom:14px;
     border:3px solid var(--c);box-shadow:0 5px 0 var(--line);
   }
-  .q img{display:block;height:130px;max-width:100%;margin:0 auto 6px;object-fit:contain}
+  .q img{display:block;height:auto;width:min(100%,300px);max-width:100%;margin:0 auto 6px;object-fit:contain}
   label.lbl{display:block;font-weight:900;font-size:17px;margin:0 2px 6px}
   textarea,input{
     width:100%;border:3px solid var(--line);border-radius:14px;background:#fff;
@@ -66,38 +66,38 @@
 
   <div class="q" style="--c:var(--blue)">
     <img src="img/bilemin.png" alt="">
-    <label class="lbl" for="t-bilemin">1. Бұл тақырып туралы не білесің?</label>
-    <textarea id="t-bilemin" maxlength="300" placeholder="Мен білемін..."></textarea>
+    <label class="lbl" for="t-bilemin">1. Бүгінгі коучинг-семинардан қандай жаңа білім алдыңыз?</label>
+    <textarea id="t-bilemin" maxlength="300" placeholder="Мен бүгін білдім..."></textarea>
     <div class="count"><span>0</span>/300</div>
   </div>
 
   <div class="q" style="--c:var(--orange)">
     <img src="img/bilgim.png" alt="">
-    <label class="lbl" for="t-bilgim">2. Не білгің келеді?</label>
-    <textarea id="t-bilgim" maxlength="300" placeholder="Мен білгім келеді..."></textarea>
+    <label class="lbl" for="t-bilgim">2. Алған біліміңізді тәжірибеңізде қолдана аласыз ба?</label>
+    <textarea id="t-bilgim" maxlength="300" placeholder="Иә, мысалы..."></textarea>
     <div class="count"><span>0</span>/300</div>
   </div>
 
   <div class="q" style="--c:var(--green)">
     <img src="img/bildim.png" alt="">
-    <label class="lbl" for="t-bildim">3. Сабақтан не білдің?</label>
-    <textarea id="t-bildim" maxlength="300" placeholder="Бүгін мен білдім..."></textarea>
+    <label class="lbl" for="t-bildim">3. Келесі коучингте қандай тақырыпты қарастырғыңыз келеді?</label>
+    <textarea id="t-bildim" maxlength="300" placeholder="Келесі жолы..."></textarea>
     <div class="count"><span>0</span>/300</div>
   </div>
 
   <div class="q" style="--c:var(--ink)">
-    <label class="lbl" for="name">Аты-жөнің</label>
+    <label class="lbl" for="name">Аты-жөніңіз</label>
     <input id="name" class="name" maxlength="40" placeholder="Мысалы: Айжан Серікова">
   </div>
 
   <button class="send" id="send" disabled>Жіберу 🚀</button>
-  <div class="hint" id="hint">Үш сұраққа да жауап жазып, атыңды көрсет</div>
+  <div class="hint" id="hint">Үш сұраққа да жауап жазып, аты-жөніңізді көрсетіңіз</div>
 </div>
 
 <div class="wrap done" id="done">
   <img src="img/bildim.png" alt="">
   <h2>Рақмет! 🎉</h2>
-  <p>Жауаптарың тақтаға түсті.</p>
+  <p>Жауаптарыңыз тақтаға түсті.</p>
   <button id="again">Тағы жауап жіберу</button>
 </div>
 
@@ -140,8 +140,8 @@
     const noName = !$("name").value.trim();
     $("send").disabled = !(db && !missing && !noName);
     $("hint").textContent = missing
-      ? `Тағы ${missing} сұраққа жауап жаз`
-      : noName ? "Атыңды жаз" : "Бәрі дайын, жібере бер!";
+      ? `Тағы ${missing} сұраққа жауап жазыңыз`
+      : noName ? "Аты-жөніңізді жазыңыз" : "Бәрі дайын, жібере беріңіз!";
   }
   COLS.forEach(c => $("t-" + c).oninput = update);
   $("name").oninput = update;

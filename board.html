@@ -40,7 +40,7 @@
   main{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:8px 20px 20px;min-height:0}
   .col{display:flex;flex-direction:column;min-height:0;background:rgba(255,255,255,.55);border-radius:24px;border:3px solid var(--c)}
   .col-head{position:relative;display:flex;justify-content:center;padding:8px 8px 0}
-  .col-head img{height:clamp(90px,15vh,180px);max-width:100%;object-fit:contain}
+  .col-head img{height:clamp(110px,24vh,240px);max-width:100%;object-fit:contain}
   .badge{
     position:absolute;top:10px;right:12px;background:var(--c);color:#fff;font-weight:900;
     border-radius:99px;min-width:38px;padding:4px 10px;text-align:center;font-size:18px
@@ -79,7 +79,7 @@
 <body>
 <header>
   <div class="title">
-    <p class="kick">Кері байланыс · QR-ды сканерлеп, үш сұраққа жауап бер</p>
+    <p class="kick">Кері байланыс · QR-ды сканерлеп, үш сұраққа жауап беріңіз</p>
     <h1 id="roomName">—</h1>
   </div>
   <div class="tools">
@@ -88,26 +88,26 @@
     <button id="excel" class="excel">📥 Excel</button>
     <button id="clear" class="danger">🗑 Тазалау</button>
   </div>
-  <div class="qr" id="qrBtn" title="Үлкейту"><div id="qrSmall"></div><small>Сканерле!</small></div>
+  <div class="qr" id="qrBtn" title="Үлкейту"><div id="qrSmall"></div><small>Сканерлеңіз!</small></div>
 </header>
 <div class="notice" id="notice">Firebase әлі бапталмаған: config.js файлын толтырыңыз (README.md, 2-қадам).</div>
 
 <main>
   <section class="col" style="--c:var(--blue)">
-    <div class="col-head"><img src="img/bilemin.png" alt="Не білесің?"><span class="badge" id="c-bilemin">0</span></div>
+    <div class="col-head"><img src="img/bilemin.png" alt="Бүгінгі коучинг-семинардан қандай жаңа білім алдыңыз?"><span class="badge" id="c-bilemin">0</span></div>
     <div class="list" id="l-bilemin"><div class="empty">Жауаптар осында шығады…</div></div>
   </section>
   <section class="col" style="--c:var(--orange)">
-    <div class="col-head"><img src="img/bilgim.png" alt="Не білгің келеді?"><span class="badge" id="c-bilgim">0</span></div>
+    <div class="col-head"><img src="img/bilgim.png" alt="Алған біліміңізді тәжірибеңізде қолдана аласыз ба?"><span class="badge" id="c-bilgim">0</span></div>
     <div class="list" id="l-bilgim"><div class="empty">Жауаптар осында шығады…</div></div>
   </section>
   <section class="col" style="--c:var(--green)">
-    <div class="col-head"><img src="img/bildim.png" alt="Не білдің?"><span class="badge" id="c-bildim">0</span></div>
+    <div class="col-head"><img src="img/bildim.png" alt="Келесі коучингте қандай тақырыпты қарастырғыңыз келеді?"><span class="badge" id="c-bildim">0</span></div>
     <div class="list" id="l-bildim"><div class="empty">Жауаптар осында шығады…</div></div>
   </section>
 </main>
 
-<div class="overlay" id="overlay"><div class="box"><div id="qrBig"></div></div><p>Телефон камерасымен сканерле 📱</p><p id="link" style="font-size:16px;opacity:.8;font-weight:700;margin-top:6px;word-break:break-all"></p></div>
+<div class="overlay" id="overlay"><div class="box"><div id="qrBig"></div></div><p>Телефон камерасымен сканерлеңіз 📱</p><p id="link" style="font-size:16px;opacity:.8;font-weight:700;margin-top:6px;word-break:break-all"></p></div>
 
 <script src="config.js"></script>
 <script type="module">
@@ -165,22 +165,22 @@
       const g = groups.get(k);
       g[a.col] = g[a.col] ? g[a.col] + "\n" + a.text : a.text;
     }
-    const rows1 = [["№", "Аты-жөні", "Не білесің?", "Не білгің келеді?", "Не білдің?", "Уақыты"]];
+    const rows1 = [["№", "Аты-жөні", "Бүгінгі коучинг-семинардан қандай жаңа білім алдыңыз?", "Алған біліміңізді тәжірибеңізде қолдана аласыз ба?", "Келесі коучингте қандай тақырыпты қарастырғыңыз келеді?", "Уақыты"]];
     let i = 0;
     for (const g of groups.values()) rows1.push([++i, g.name, g.bilemin, g.bilgim, g.bildim, fmt(g.ts)]);
 
     // 2-парақ: бағандар бойынша
-    const label = { bilemin: "Не білесің?", bilgim: "Не білгің келеді?", bildim: "Не білдің?" };
+    const label = { bilemin: "Бүгінгі коучинг-семинардан қандай жаңа білім алдыңыз?", bilgim: "Алған біліміңізді тәжірибеңізде қолдана аласыз ба?", bildim: "Келесі коучингте қандай тақырыпты қарастырғыңыз келеді?" };
     const rows2 = [["Сұрақ", "Жауап", "Аты-жөні", "Уақыты"]];
     for (const c of ["bilemin", "bilgim", "bildim"])
       for (const a of all.filter(a => a.col === c)) rows2.push([label[c], a.text, a.name || "", fmt(a.ts)]);
 
     const wb = XLSX.utils.book_new();
     const ws1 = XLSX.utils.aoa_to_sheet([[$("roomName").textContent], [], ...rows1]);
-    ws1["!cols"] = [{ wch: 5 }, { wch: 24 }, { wch: 45 }, { wch: 45 }, { wch: 45 }, { wch: 18 }];
+    ws1["!cols"] = [{ wch: 5 }, { wch: 24 }, { wch: 50 }, { wch: 50 }, { wch: 50 }, { wch: 18 }];
     ws1["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
     const ws2 = XLSX.utils.aoa_to_sheet(rows2);
-    ws2["!cols"] = [{ wch: 20 }, { wch: 60 }, { wch: 24 }, { wch: 18 }];
+    ws2["!cols"] = [{ wch: 50 }, { wch: 60 }, { wch: 24 }, { wch: 18 }];
     XLSX.utils.book_append_sheet(wb, ws1, "Қатысушылар");
     XLSX.utils.book_append_sheet(wb, ws2, "Сұрақтар бойынша");
     const d = new Date(), p = n => String(n).padStart(2, "0");
